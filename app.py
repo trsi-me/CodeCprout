@@ -5,11 +5,20 @@ import random
 import sqlite3
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, request, session, jsonify
+from flask import Flask, request, session, jsonify, send_from_directory, abort
 
-app = Flask(__name__)
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.secret_key = 'codesprout_secret_key_2026'
-app.config['DATABASE'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
+app.config['DATABASE'] = os.path.join(ROOT_DIR, 'database.db')
+
+# صفحات HTML في جذر المشروع (للنشر على Render وغيره — طلبات GET / وليس فقط /api)
+_HTML_PAGES = frozenset({
+    'index.html', 'login.html', 'register.html', 'dashboard.html',
+    'games.html', 'play.html', 'analytics.html', 'suggestions.html',
+    'about.html', 'contact.html', 'admin.html', 'exercises.html',
+})
 
 BRACKET_RANK = {'6-8': 0, '9-11': 1, '12+': 2}
 
@@ -1271,6 +1280,18 @@ def seed_exercises():
         ''', ex)
     conn.commit()
     conn.close()
+
+
+@app.route('/')
+def serve_index():
+    return send_from_directory(ROOT_DIR, 'index.html')
+
+
+@app.route('/<page>')
+def serve_html_page(page):
+    if page in _HTML_PAGES:
+        return send_from_directory(ROOT_DIR, page)
+    abort(404)
 
 
 if __name__ == '__main__':

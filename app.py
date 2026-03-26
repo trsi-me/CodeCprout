@@ -1195,7 +1195,6 @@ def append_more_motivational_phrases():
 
 
 def append_deep_content():
-    """تمارين إضافية بعمق أكبر ومراحل أعلى لكل الشرائح العمرية."""
     conn = get_db()
     cursor = conn.cursor()
     extra = [
@@ -1294,7 +1293,7 @@ def serve_html_page(page):
     abort(404)
 
 
-if __name__ == '__main__':
+def bootstrap_database():
     init_db()
     migrate_db()
     seed_exercises()
@@ -1303,4 +1302,10 @@ if __name__ == '__main__':
     append_more_motivational_phrases()
     seed_badges_and_phrases()
     seed_demo_users()
+
+
+bootstrap_database()
+
+
+if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)

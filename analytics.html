@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التحليل والتقارير - CodeSprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header class="main-header main-header--primary">
+        <div class="header-content header-content--wide">
+            <a href="index.html" class="logo-link">
+                <img src="static/assets/images/Logo.jpg" alt="CodeSprout" class="logo-img logo-img--full" width="180" height="56">
+                <span class="logo-text"><span class="logo-code">Code</span><span class="logo-sprout">Sprout</span></span>
+            </a>
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-label="فتح وإغلاق القائمة" aria-expanded="false" aria-controls="main-nav-drawer">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+            <nav class="main-nav main-nav--bold" id="main-nav-drawer">
+                <a href="index.html"><i class="fa-solid fa-house fa-fw"></i> الرئيسية</a>
+                <a href="admin.html" id="nav-admin" class="hidden"><i class="fa-solid fa-chart-pie fa-fw"></i> لوحة الإدارة</a>
+                <a href="dashboard.html"><i class="fa-solid fa-gauge-high fa-fw"></i> لوحة التحكم</a>
+                <a href="play.html"><i class="fa-solid fa-shapes fa-fw"></i> نشاط مرئي</a>
+                <a href="games.html"><i class="fa-solid fa-layer-group fa-fw"></i> مكتبة الألعاب</a>
+                <a href="analytics.html"><i class="fa-solid fa-chart-line fa-fw"></i> التحليل</a>
+                <a href="suggestions.html"><i class="fa-solid fa-lightbulb fa-fw"></i> اقتراحات</a>
+                <a href="#" id="logout-link"><i class="fa-solid fa-right-from-bracket fa-fw"></i> خروج</a>
+            </nav>
+        </div>
+    </header>
+    <main class="main-content main-content--wide">
+        <section class="analytics-page">
+            <h1>التحليل والتقارير</h1>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>المستوى الحالي</h3>
+                    <p class="level-badge" id="ana-level">-</p>
+                </div>
+                <div class="analytics-card">
+                    <h3>إحصائيات الأداء</h3>
+                    <p id="ana-total">إجمالي التمارين: 0</p>
+                    <p id="ana-correct">الإجابات الصحيحة: 0</p>
+                    <p id="ana-rate">نسبة النجاح: 0%</p>
+                </div>
+                <div class="analytics-card chart-card">
+                    <h3>تصنيف الأخطاء</h3>
+                    <div id="errors-chart" class="chart-container"></div>
+                </div>
+                <div class="analytics-card">
+                    <h3>أكثر المواضيع التي تحتاج مراجعة</h3>
+                    <ul id="weak-topics"></ul>
+                </div>
+            </div>
+            <div class="progress-section">
+                <h3>تطور الأداء (آخر المحاولات)</h3>
+                <div id="progress-chart" class="progress-chart"></div>
+            </div>
+        </section>
+    </main>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <span>CodeSprout 2026 - تعلم البرمجة للأطفال</span>
+        </div>
+    </footer>
+    <script>var API = 'http://127.0.0.1:5000';</script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/nav.js"></script>
+    <script>
+        document.getElementById('logout-link').addEventListener('click',function(e){e.preventDefault();fetch(API+'/api/logout',{credentials:'include'}).then(function(){window.location.href='index.html';});});
+        fetch(API+'/api/user',{credentials:'include'}).then(function(r){return r.json();}).then(function(u){
+            if(!u.logged_in){window.location.href='login.html';return;}
+            var adm=document.getElementById('nav-admin');
+            if(adm){if((u.role||'')==='admin'){adm.classList.remove('hidden');}else{adm.classList.add('hidden');}}
+        });
+        fetch(API+'/api/analytics',{credentials:'include'}).then(function(r){
+            if(r.status===401){window.location.href='login.html';return;}
+            return r.json();
+        }).then(function(d){
+            if(!d||d.error)return;
+            if(d.parent_mode){
+                document.querySelector('.analytics-page').innerHTML='<h1>التحليل</h1><p class="parent-analytics-msg">تحليلات الأداء تُعرض لحساب الطفل. سجّل دخول الطفل أو راجع ملخص الأطفال من لوحة التحكم.</p><a href="dashboard.html" class="btn btn-primary">لوحة التحكم</a>';
+                return;
+            }
+            document.getElementById('ana-level').textContent=d.level;
+            var p=d.performance||{};
+            document.getElementById('ana-total').textContent='إجمالي التمارين: '+(p.total_exercises||0);
+            document.getElementById('ana-correct').textContent='الإجابات الصحيحة: '+(p.correct_count||0);
+            document.getElementById('ana-rate').textContent='نسبة النجاح: '+(p.success_rate||0)+'%';
+            var ec=document.getElementById('errors-chart');
+            if(d.errors&&d.errors.length){
+                var mx=Math.max.apply(null,d.errors.map(function(e){return e.count;}));
+                d.errors.forEach(function(e){
+                    var r=document.createElement('div');
+                    r.className='chart-bar-row';
+                    r.innerHTML='<span class="bar-label">'+(e.error_type||'غير محدد')+'</span><div class="bar-track"><div class="bar-fill" style="width:'+(e.count/mx*100)+'%"></div></div><span class="bar-value">'+e.count+'</span>';
+                    ec.appendChild(r);
+                });
+            }else{ec.innerHTML='<p class="no-data">لا توجد أخطاء مسجلة بعد</p>';}
+            var wt=document.getElementById('weak-topics');
+            if(d.weak_exercises&&d.weak_exercises.length){
+                d.weak_exercises.forEach(function(w){
+                    var li=document.createElement('li');
+                    li.textContent='تمرين #'+w.exercise_id;
+                    wt.appendChild(li);
+                });
+            }else{wt.innerHTML='<li class="no-data">ممتاز! لا توجد مواضيع ضعيفة</li>';}
+            var pc=document.getElementById('progress-chart');
+            var att=(d.attempts||[]).slice(0,20).reverse();
+            att.forEach(function(a){
+                var dot=document.createElement('div');
+                dot.className='progress-dot '+(a.is_correct?'correct':'wrong');
+                dot.title=a.is_correct?'صح':'خطأ';
+                pc.appendChild(dot);
+            });
+            if(!att.length){pc.innerHTML='<p class="no-data">لا توجد محاولات بعد</p>';}
+        });
+    </script>
+</body>
+</html>

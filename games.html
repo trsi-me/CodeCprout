@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مكتبة الألعاب التعليمية - CodeSprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header class="main-header main-header--primary">
+        <div class="header-content header-content--wide">
+            <a href="index.html" class="logo-link">
+                <img src="static/assets/images/Logo.jpg" alt="CodeSprout" class="logo-img logo-img--full" width="180" height="56">
+                <span class="logo-text"><span class="logo-code">Code</span><span class="logo-sprout">Sprout</span></span>
+            </a>
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-label="فتح وإغلاق القائمة" aria-expanded="false" aria-controls="main-nav-drawer">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+            <nav class="main-nav main-nav--bold" id="main-nav-drawer">
+                <a href="index.html"><i class="fa-solid fa-house fa-fw"></i> الرئيسية</a>
+                <a href="admin.html" id="nav-admin" class="hidden"><i class="fa-solid fa-chart-pie fa-fw"></i> لوحة الإدارة</a>
+                <a href="dashboard.html"><i class="fa-solid fa-gauge-high fa-fw"></i> لوحة التحكم</a>
+                <a href="play.html"><i class="fa-solid fa-shapes fa-fw"></i> نشاط مرئي</a>
+                <a href="games.html"><i class="fa-solid fa-layer-group fa-fw"></i> مكتبة الألعاب</a>
+                <a href="analytics.html"><i class="fa-solid fa-chart-line fa-fw"></i> التحليل</a>
+                <a href="suggestions.html"><i class="fa-solid fa-lightbulb fa-fw"></i> اقتراحات</a>
+                <a href="#" id="logout-link"><i class="fa-solid fa-right-from-bracket fa-fw"></i> خروج</a>
+            </nav>
+        </div>
+    </header>
+    <main class="main-content main-content--wide">
+        <div id="flash-messages"></div>
+        <section class="exercises-page games-page">
+            <h1>مكتبة الألعاب التعليمية</h1>
+            <p class="games-intro fw-normal">مراحل تدريجية وتحديات برمجية بالعربية — تعلّم عبر اللعب: سحب وإفلات لترتيب الأوامر، واختيارات تفاعلية. جرّب أيضاً <a href="play.html">نشاط البرمجة المرئية</a> بكتل الأوامر.</p>
+            <div id="parent-games-banner" class="parent-banner hidden"></div>
+            <div class="stages-track" id="stages-track"></div>
+            <div class="exercises-filter games-filter" id="games-filter">
+                <button class="filter-btn active" data-category="all">الكل</button>
+                <button class="filter-btn" data-category="ترتيب">ترتيب الأوامر</button>
+                <button class="filter-btn" data-category="متغيرات">المتغيرات</button>
+                <button class="filter-btn" data-category="حلقات">الحلقات</button>
+                <button class="filter-btn" data-category="منطق">التفكير المنطقي</button>
+                <button class="filter-btn" data-category="اختيار">اختيار صحيح</button>
+            </div>
+            <p class="bracket-hint hidden" id="bracket-hint"></p>
+            <div class="exercises-list" id="games-list"></div>
+        </section>
+        <div id="exercise-modal" class="modal hidden">
+            <div class="modal-content">
+                <button type="button" class="modal-close" aria-label="إغلاق"><i class="fa-solid fa-times"></i></button>
+                <h2 id="modal-title">اللعبة</h2>
+                <div id="modal-body"></div>
+                <div class="modal-actions">
+                    <button id="submit-exercise" class="btn btn-primary">تحقق من الإجابة</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <span>CodeSprout 2026 - تعلم البرمجة للأطفال</span>
+        </div>
+    </footer>
+    <script>var API = 'http://127.0.0.1:5000';</script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/nav.js"></script>
+    <script>
+        document.getElementById('logout-link').addEventListener('click',function(e){e.preventDefault();fetch(API+'/api/logout',{credentials:'include'}).then(function(){window.location.href='index.html';});});
+        function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+        function buildCard(ex){
+            var card=document.createElement('div');
+            card.className='exercise-card';
+            card.setAttribute('data-category',ex.category);
+            var h3=document.createElement('h3');
+            h3.textContent=ex.title;
+            var p=document.createElement('p');
+            p.className='ex-desc';
+            p.textContent=ex.description||'';
+            var st=document.createElement('span');
+            st.className='stage-badge';
+            st.textContent='مرحلة '+ex.stage_number+' | صعوبة '+ex.difficulty;
+            var diff=document.createElement('span');
+            diff.className='ex-difficulty';
+            diff.textContent='الفئة العمرية: '+ex.min_age_bracket;
+            var btn=document.createElement('button');
+            btn.type='button';
+            btn.className='btn btn-primary btn-exercise';
+            btn.setAttribute('data-id', ex.id);
+            btn.setAttribute('data-type', ex.question_type);
+            btn.setAttribute('data-content', ex.content);
+            btn.setAttribute('data-answer', ex.correct_answer);
+            btn.textContent='ابدأ اللعبة';
+            card.appendChild(h3);card.appendChild(p);card.appendChild(st);card.appendChild(diff);card.appendChild(btn);
+            return card;
+        }
+        function renderStages(data){
+            var el=document.getElementById('stages-track');
+            el.innerHTML='';
+            if(!data||!data.stages||!data.stages.length)return;
+            var title=document.createElement('h2');
+            title.className='stages-title';
+            title.textContent='مسار المراحل';
+            el.appendChild(title);
+            var row=document.createElement('div');
+            row.className='stages-row';
+            data.stages.forEach(function(s){
+                var n=document.createElement('div');
+                n.className='stage-node'+(s.complete?' stage-complete':'');
+                n.innerHTML='<span class="stage-num">'+s.stage_number+'</span><span class="stage-meta">'+s.solved+'/'+s.total+'</span>';
+                row.appendChild(n);
+            });
+            el.appendChild(row);
+        }
+        fetch(API+'/api/user',{credentials:'include'}).then(function(r){return r.json();}).then(function(u){
+            if(!u.logged_in){window.location.href='login.html';return;}
+            var adm=document.getElementById('nav-admin');
+            if(adm){if((u.role||'')==='admin'){adm.classList.remove('hidden');}else{adm.classList.add('hidden');}}
+            if((u.role||'')==='parent'){
+                var b=document.getElementById('parent-games-banner');
+                b.classList.remove('hidden');
+                b.innerHTML='<p><strong>حساب ولي أمر:</strong> لعب الألعاب والمحاولات تسجَّل لحساب الطفل. أنشئ حساباً للطفل من لوحة التحكم ثم سجّل دخوله هنا، أو استخدم بيانات الطفل إن وُجدت.</p>';
+            }
+        });
+        fetch(API+'/api/stages',{credentials:'include'}).then(function(r){return r.json();}).then(renderStages);
+        fetch(API+'/api/exercises',{credentials:'include'}).then(function(r){
+            if(r.status===401){window.location.href='login.html';return;}
+            return r.json();
+        }).then(function(d){
+            var list=document.getElementById('games-list');
+            list.innerHTML='';
+            if(d&&d.parent_mode){
+                var p=document.createElement('p');
+                p.className='parent-empty-msg';
+                p.textContent=d.message||'';
+                list.appendChild(p);
+                return;
+            }
+            if(d&&d.user_bracket){
+                var bh=document.getElementById('bracket-hint');
+                bh.classList.remove('hidden');
+                bh.textContent='المستوى المناسب لعمرك: '+d.user_bracket+' — تُعرض الألعاب المتاحة لك فقط.';
+            }
+            if(d&&d.exercises){
+                d.exercises.forEach(function(ex){list.appendChild(buildCard(ex));});
+                if(typeof initExerciseModal==='function')initExerciseModal();
+                if(typeof initFilterButtons==='function')initFilterButtons();
+            }
+        });
+    </script>
+</body>
+</html>

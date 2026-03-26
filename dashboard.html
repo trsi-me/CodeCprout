@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - CodeSprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header class="main-header main-header--primary">
+        <div class="header-content header-content--wide">
+            <a href="index.html" class="logo-link">
+                <img src="static/assets/images/Logo.jpg" alt="CodeSprout" class="logo-img logo-img--full" width="180" height="56">
+                <span class="logo-text"><span class="logo-code">Code</span><span class="logo-sprout">Sprout</span></span>
+            </a>
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-label="فتح وإغلاق القائمة" aria-expanded="false" aria-controls="main-nav-drawer">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+            <nav class="main-nav main-nav--bold" id="main-nav-drawer">
+                <a href="index.html"><i class="fa-solid fa-house fa-fw"></i> الرئيسية</a>
+                <a href="admin.html" id="nav-admin" class="hidden"><i class="fa-solid fa-chart-pie fa-fw"></i> لوحة الإدارة</a>
+                <a href="dashboard.html"><i class="fa-solid fa-gauge-high fa-fw"></i> لوحة التحكم</a>
+                <a href="play.html"><i class="fa-solid fa-shapes fa-fw"></i> نشاط مرئي</a>
+                <a href="games.html"><i class="fa-solid fa-layer-group fa-fw"></i> مكتبة الألعاب</a>
+                <a href="analytics.html"><i class="fa-solid fa-chart-line fa-fw"></i> التحليل</a>
+                <a href="suggestions.html"><i class="fa-solid fa-lightbulb fa-fw"></i> اقتراحات</a>
+                <span class="notif-wrap">
+                    <button type="button" class="notif-bell" id="notif-bell" aria-label="الإشعارات"><i class="fa-solid fa-bell"></i> <span id="notif-count" class="notif-count hidden">0</span></button>
+                    <div class="notif-panel hidden" id="notif-panel"></div>
+                </span>
+                <a href="#" id="logout-link"><i class="fa-solid fa-right-from-bracket fa-fw"></i> خروج</a>
+            </nav>
+        </div>
+    </header>
+    <main class="main-content main-content--wide">
+        <div id="flash-messages"></div>
+        <section class="dashboard">
+            <h1 id="dash-title">مرحباً</h1>
+            <div id="parent-panel" class="parent-panel hidden">
+                <h2>لوحة ولي الأمر</h2>
+                <p class="parent-desc">أنشئ حساباً مستقلاً لكل طفل ليتابع تقدّمه في مكتبة الألعاب.</p>
+                <form id="child-form" class="auth-form child-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="child_full_name">اسم الطفل</label>
+                            <input type="text" id="child_full_name" name="full_name" required placeholder="الاسم الظاهر">
+                        </div>
+                        <div class="form-group">
+                            <label for="child_username">اسم مستخدم للطفل</label>
+                            <input type="text" id="child_username" name="username" required placeholder="بالإنجليزية">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="child_password">كلمة مرور الطفل</label>
+                            <input type="password" id="child_password" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="child_age">عمر الطفل</label>
+                            <input type="number" id="child_age" name="age" min="6" max="15" required placeholder="6–15">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">إنشاء حساب الطفل</button>
+                </form>
+                <h3>الأطفال المرتبطون</h3>
+                <div id="children-list" class="children-list"></div>
+            </div>
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-level">-</span>
+                    <span class="stat-label">المستوى الحالي</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-attempts">0</span>
+                    <span class="stat-label">عدد المحاولات</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-correct">0</span>
+                    <span class="stat-label">الإجابات الصحيحة</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-rate">0%</span>
+                    <span class="stat-label">نسبة النجاح</span>
+                </div>
+                <div class="stat-card hidden" id="stat-streak-card">
+                    <span class="stat-value" id="stat-streak">0</span>
+                    <span class="stat-label">أيام النشاط المتتالية</span>
+                </div>
+                <div class="stat-card hidden" id="stat-points-card">
+                    <span class="stat-value" id="stat-points">0</span>
+                    <span class="stat-label">النقاط</span>
+                </div>
+            </div>
+            <div class="dashboard-actions">
+                <a href="play.html" class="btn btn-primary"><i class="fa-solid fa-shapes"></i> نشاط البرمجة المرئية</a>
+                <a href="games.html" class="btn btn-outline">مكتبة الألعاب التعليمية</a>
+                <a href="analytics.html" class="btn btn-secondary">عرض التحليل</a>
+                <a href="suggestions.html" class="btn btn-outline">اقتراح دروس إضافية</a>
+            </div>
+        </section>
+    </main>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <span>CodeSprout 2026 - تعلم البرمجة للأطفال</span>
+        </div>
+    </footer>
+    <script>var API = 'http://127.0.0.1:5000';</script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/nav.js"></script>
+    <script>
+        document.getElementById('logout-link').addEventListener('click',function(e){e.preventDefault();fetch(API+'/api/logout',{credentials:'include'}).then(function(){window.location.href='index.html';});});
+        var notifOpen=false;
+        function loadNotifications(){
+            fetch(API+'/api/notifications',{credentials:'include'}).then(function(r){return r.json();}).then(function(d){
+                var c=document.getElementById('notif-count');
+                var p=document.getElementById('notif-panel');
+                if(d.unread_count>0){c.textContent=d.unread_count;c.classList.remove('hidden');}else{c.classList.add('hidden');}
+                p.innerHTML='';
+                if(!d.notifications||!d.notifications.length){
+                    var e=document.createElement('p');e.className='notif-empty';e.textContent='لا توجد إشعارات';p.appendChild(e);return;
+                }
+                d.notifications.forEach(function(n){
+                    var div=document.createElement('div');
+                    div.className='notif-item'+(n.read_at?'':' notif-unread');
+                    div.innerHTML='<strong>'+n.title+'</strong><p>'+n.body+'</p><span class="notif-time">'+n.created_at+'</span>';
+                    div.addEventListener('click',function(){
+                        fetch(API+'/api/notifications/read',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({id:n.id})}).then(loadNotifications);
+                    });
+                    p.appendChild(div);
+                });
+                var all=document.createElement('button');
+                all.type='button';all.className='btn btn-outline notif-mark-all';all.textContent='تعليم الكل كمقروء';
+                all.addEventListener('click',function(){
+                    fetch(API+'/api/notifications/read',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({id:'all'})}).then(loadNotifications);
+                });
+                p.appendChild(all);
+            });
+        }
+        document.getElementById('notif-bell').addEventListener('click',function(e){
+            e.stopPropagation();
+            var p=document.getElementById('notif-panel');
+            notifOpen=!notifOpen;
+            if(notifOpen){p.classList.remove('hidden');loadNotifications();}else{p.classList.add('hidden');}
+        });
+        document.addEventListener('click',function(){document.getElementById('notif-panel').classList.add('hidden');notifOpen=false;});
+        document.getElementById('notif-panel').addEventListener('click',function(e){e.stopPropagation();});
+        fetch(API+'/api/user',{credentials:'include'}).then(function(r){return r.json();}).then(function(u){
+            if(!u.logged_in){window.location.href='login.html';return;}
+            document.getElementById('dash-title').textContent='مرحباً '+u.full_name;
+            var adm=document.getElementById('nav-admin');
+            if(adm){if((u.role||'')==='admin'){adm.classList.remove('hidden');}else{adm.classList.add('hidden');}}
+            if((u.role||'')==='parent'){
+                document.getElementById('parent-panel').classList.remove('hidden');
+                document.getElementById('stat-streak-card').classList.add('hidden');
+                function loadChildren(){
+                    fetch(API+'/api/parent/children',{credentials:'include'}).then(function(r){return r.json();}).then(function(d){
+                        var el=document.getElementById('children-list');
+                        el.innerHTML='';
+                        if(!d.children||!d.children.length){
+                            el.innerHTML='<p class="no-data">لم تُضف أطفال بعد. أنشئ حساباً أعلاه.</p>';return;
+                        }
+                        d.children.forEach(function(ch){
+                            var card=document.createElement('div');
+                            card.className='child-summary-card';
+                            card.innerHTML='<h4>'+ch.full_name+'</h4><p>العمر: '+ch.age+' | الشريحة: '+ch.age_bracket+'</p><p>المستوى: '+ch.level+' | المحاولات: '+ch.total_attempts+' | الصحيح: '+ch.correct_count+'</p><p class="child-login-hint">اسم المستخدم: <code>'+ch.username+'</code> — سجّل دخول الطفل من صفحة الدخول للعب.</p>';
+                            el.appendChild(card);
+                        });
+                    });
+                }
+                loadChildren();
+                document.getElementById('child-form').addEventListener('submit',function(e){
+                    e.preventDefault();
+                    var fd=new FormData(this);
+                    fetch(API+'/api/register_child',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({
+                        full_name:fd.get('full_name'),username:fd.get('username'),password:fd.get('password'),age:fd.get('age')
+                    })}).then(function(r){return r.json();}).then(function(d){
+                        if(d.success){showFlash('تم إنشاء حساب الطفل بنجاح','success');this.reset();loadChildren();}
+                        else{showFlash(d.error||'خطأ','error');}
+                    }.bind(this));
+                });
+            }
+        });
+        fetch(API+'/api/dashboard',{credentials:'include'}).then(function(r){
+            if(r.status===401){window.location.href='login.html';return r.json();}
+            return r.json();
+        }).then(function(d){
+            if(d&&!d.error){
+                document.getElementById('stat-level').textContent=d.level;
+                document.getElementById('stat-attempts').textContent=d.total_attempts;
+                document.getElementById('stat-correct').textContent=d.correct_count;
+                document.getElementById('stat-rate').textContent=d.success_rate+'%';
+                if((d.role||'')==='child'&&typeof d.streak_days==='number'){
+                    document.getElementById('stat-streak-card').classList.remove('hidden');
+                    document.getElementById('stat-streak').textContent=d.streak_days;
+                }
+                if((d.role||'')==='child'||(d.role||'')==='admin'){
+                    document.getElementById('stat-points-card').classList.remove('hidden');
+                    document.getElementById('stat-points').textContent=typeof d.points==='number'?d.points:0;
+                }
+            }
+        });
+        loadNotifications();
+    </script>
+</body>
+</html>

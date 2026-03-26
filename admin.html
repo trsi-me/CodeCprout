@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة - CodeSprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header class="main-header main-header--primary">
+        <div class="header-content header-content--wide">
+            <a href="index.html" class="logo-link">
+                <img src="static/assets/images/Logo.jpg" alt="CodeSprout" class="logo-img logo-img--full" width="180" height="56">
+                <span class="logo-text"><span class="logo-code">Code</span><span class="logo-sprout">Sprout</span></span>
+            </a>
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-label="فتح وإغلاق القائمة" aria-expanded="false" aria-controls="main-nav-drawer">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+            <nav class="main-nav main-nav--bold" id="main-nav-drawer">
+                <a href="index.html"><i class="fa-solid fa-house fa-fw"></i> الرئيسية</a>
+                <a href="admin.html" aria-current="page"><i class="fa-solid fa-chart-pie fa-fw"></i> لوحة الإدارة</a>
+                <a href="dashboard.html"><i class="fa-solid fa-gauge-high fa-fw"></i> لوحة التحكم</a>
+                <a href="play.html"><i class="fa-solid fa-shapes fa-fw"></i> نشاط مرئي</a>
+                <a href="games.html"><i class="fa-solid fa-layer-group fa-fw"></i> مكتبة الألعاب</a>
+                <a href="analytics.html"><i class="fa-solid fa-chart-line fa-fw"></i> التحليل</a>
+                <a href="suggestions.html"><i class="fa-solid fa-lightbulb fa-fw"></i> اقتراحات</a>
+                <a href="#" id="logout-link"><i class="fa-solid fa-right-from-bracket fa-fw"></i> خروج</a>
+            </nav>
+        </div>
+    </header>
+    <main class="main-content main-content--wide">
+        <div id="flash-messages"></div>
+        <section class="admin-dashboard">
+            <h1 class="admin-title"><i class="fa-solid fa-shield-halved"></i> لوحة الإدارة</h1>
+            <p class="admin-lead fw-normal">نظرة شاملة على المستخدمين، التمارين، التحديات، والشارات.</p>
+            <div id="admin-forbidden" class="hidden parent-analytics-msg">
+                <p>ليس لديك صلاحية الوصول. سيتم توجيهك إلى لوحة التحكم.</p>
+            </div>
+            <div id="admin-content" class="hidden">
+                <div class="admin-stats-grid" id="admin-stats"></div>
+                <h2 class="admin-section-title fw-bold">آخر المحاولات</h2>
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="admin-recent">
+                        <thead>
+                            <tr>
+                                <th>المستخدم</th>
+                                <th>الاسم</th>
+                                <th>الدور</th>
+                                <th>التمرين</th>
+                                <th>صحيح؟</th>
+                                <th>الوقت</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <h2 class="admin-section-title fw-bold">المستخدمون</h2>
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="admin-users">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>اسم المستخدم</th>
+                                <th>الاسم</th>
+                                <th>الدور</th>
+                                <th>العمر</th>
+                                <th>الشريحة</th>
+                                <th>النقاط</th>
+                                <th>تاريخ الإنشاء</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <span>CodeSprout — إدارة المنصة</span>
+        </div>
+    </footer>
+    <script>var API = 'http://127.0.0.1:5000';</script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/nav.js"></script>
+    <script>
+        document.getElementById('logout-link').addEventListener('click', function (e) {
+            e.preventDefault();
+            fetch(API + '/api/logout', { credentials: 'include' }).then(function () {
+                window.location.href = 'index.html';
+            });
+        });
+        fetch(API + '/api/user', { credentials: 'include' }).then(function (r) { return r.json(); }).then(function (u) {
+            if (!u.logged_in || (u.role || '') !== 'admin') {
+                document.getElementById('admin-forbidden').classList.remove('hidden');
+                setTimeout(function () { window.location.href = 'dashboard.html'; }, 1600);
+                return;
+            }
+            Promise.all([
+                fetch(API + '/api/admin/overview', { credentials: 'include' }).then(function (r) { return r.json(); }),
+                fetch(API + '/api/admin/users', { credentials: 'include' }).then(function (r) { return r.json(); })
+            ]).then(function (arr) {
+                var o = arr[0];
+                var users = arr[1];
+                if (o.error) {
+                    showFlash(o.error, 'error');
+                    return;
+                }
+                document.getElementById('admin-content').classList.remove('hidden');
+                var statsEl = document.getElementById('admin-stats');
+                var cards = [
+                    { label: 'إجمالي المستخدمين', value: o.total_users, icon: 'fa-users' },
+                    { label: 'أطفال', value: o.users_child, icon: 'fa-child' },
+                    { label: 'أولياء أمور', value: o.users_parent, icon: 'fa-user-group' },
+                    { label: 'مدراء', value: o.users_admin, icon: 'fa-user-shield' },
+                    { label: 'التمارين', value: o.total_exercises, icon: 'fa-puzzle-piece' },
+                    { label: 'المحاولات', value: o.total_attempts, icon: 'fa-bullseye' },
+                    { label: 'تسجيل شارات', value: o.badges_awarded_total, icon: 'fa-award' },
+                    { label: 'أحداث تحديات', value: o.challenge_events_total, icon: 'fa-flag-checkered' }
+                ];
+                statsEl.innerHTML = cards.map(function (c) {
+                    return '<div class="stat-card admin-stat-card"><span class="stat-value"><i class="fa-solid ' + c.icon + '"></i> ' + c.value + '</span><span class="stat-label">' + c.label + '</span></div>';
+                }).join('');
+                var rt = document.querySelector('#admin-recent tbody');
+                rt.innerHTML = '';
+                (o.recent_attempts || []).forEach(function (row) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = '<td>' + (row.username || '') + '</td><td>' + (row.full_name || '') + '</td><td>' + (row.role || '') + '</td><td>' + (row.exercise_title || '—') + '</td><td>' + (row.is_correct ? 'نعم' : 'لا') + '</td><td>' + (row.created_at || '') + '</td>';
+                    rt.appendChild(tr);
+                });
+                var ut = document.querySelector('#admin-users tbody');
+                ut.innerHTML = '';
+                (users.users || []).forEach(function (row) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = '<td>' + row.id + '</td><td>' + (row.username || '') + '</td><td>' + (row.full_name || '') + '</td><td>' + (row.role || '') + '</td><td>' + (row.age != null ? row.age : '—') + '</td><td>' + (row.age_bracket || '') + '</td><td>' + (row.points != null ? row.points : 0) + '</td><td>' + (row.created_at || '') + '</td>';
+                    ut.appendChild(tr);
+                });
+            }).catch(function () {
+                showFlash('تعذّر تحميل بيانات الإدارة', 'error');
+            });
+        });
+    </script>
+</body>
+</html>

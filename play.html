@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نشاط البرمجة المرئية - CodeSprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="static/css/play.css">
+</head>
+<body class="play-body">
+    <header class="main-header main-header--primary">
+        <div class="header-content header-content--wide">
+            <a href="index.html" class="logo-link">
+                <img src="static/assets/images/Logo.jpg" alt="CodeSprout" class="logo-img logo-img--full" width="180" height="56">
+                <span class="logo-text"><span class="logo-code">Code</span><span class="logo-sprout">Sprout</span></span>
+            </a>
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-label="فتح وإغلاق القائمة" aria-expanded="false" aria-controls="main-nav-drawer">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+            <nav class="main-nav main-nav--bold" id="main-nav-drawer">
+                <a href="index.html"><i class="fa-solid fa-house fa-fw"></i> الرئيسية</a>
+                <a href="admin.html" id="nav-admin" class="hidden"><i class="fa-solid fa-chart-pie fa-fw"></i> لوحة الإدارة</a>
+                <a href="dashboard.html"><i class="fa-solid fa-gauge-high fa-fw"></i> لوحة التحكم</a>
+                <a href="games.html"><i class="fa-solid fa-layer-group fa-fw"></i> مكتبة الألعاب</a>
+                <a href="play.html"><i class="fa-solid fa-shapes fa-fw"></i> نشاط مرئي</a>
+                <a href="analytics.html"><i class="fa-solid fa-chart-line fa-fw"></i> التحليل</a>
+                <a href="suggestions.html"><i class="fa-solid fa-lightbulb fa-fw"></i> اقتراحات</a>
+                <a href="#" id="logout-link-play"><i class="fa-solid fa-right-from-bracket fa-fw"></i> خروج</a>
+            </nav>
+        </div>
+    </header>
+    <div class="play-shell">
+        <div class="play-header-bar">
+            <div class="play-welcome">
+                <i class="fa-solid fa-user fa-fw"></i>
+                <span id="play-user-line"><span class="fw-normal">مرحباً،</span> <span id="play-user-name">ضيف</span></span>
+            </div>
+            <div class="play-header-stats">
+                <span class="play-pill" title="النقاط"><i class="fa-solid fa-star"></i> <span id="header-points">0</span> Points</span>
+                <span class="play-badge-mini"><i class="fa-solid fa-trophy"></i> <span id="badge-count">0</span></span>
+            </div>
+        </div>
+
+        <div class="play-grid-main">
+            <section class="play-panel play-instr" aria-labelledby="instr-head">
+                <div class="play-panel__head" id="instr-head"><i class="fa-solid fa-book-open"></i> لوحة التعليمات</div>
+                <div class="play-panel__body">
+                    <div class="instr-mascot-row">
+                        <div class="rabbit-avatar" aria-hidden="true"><i class="fa-solid fa-paw"></i></div>
+                        <div class="instr-bubble">
+                            <p id="play-instruction">حمّل التعليمات…</p>
+                            <p class="text-muted" id="play-instr-sub">اتبع الخطوات ثم اضغط تشغيل الكود.</p>
+                        </div>
+                    </div>
+                    <div class="attempt-line">المحاولات: <strong id="attempt-count">0/5</strong></div>
+                </div>
+            </section>
+
+            <section class="play-panel play-exec" aria-labelledby="exec-head">
+                <div class="play-panel__head" id="exec-head"><i class="fa-solid fa-play"></i> مرحلة التنفيذ</div>
+                <div class="play-panel__body">
+                    <div class="exec-scene" id="exec-scene">
+                        <div class="exec-hint-arrow" id="exec-hint"></div>
+                        <div class="exec-path" id="exec-path"></div>
+                        <div class="exec-actor" id="exec-actor"><i class="fa-solid fa-paw"></i></div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="play-panel play-side" aria-labelledby="side-head">
+                <div class="play-panel__head play-panel__head--purple" id="side-head"><i class="fa-solid fa-sliders"></i> التحكم والمكافآت</div>
+                <div class="play-panel__body">
+                    <div class="side-actions">
+                        <button type="button" class="btn-play-run" id="btn-run"><i class="fa-solid fa-play"></i> تشغيل الكود</button>
+                        <button type="button" class="btn-play-reset" id="btn-reset"><i class="fa-solid fa-rotate-right"></i> إعادة تعيين</button>
+                    </div>
+                    <div class="badges-row" aria-hidden="true">
+                        <div class="badge-circle b1"><i class="fa-solid fa-medal"></i></div>
+                        <div class="badge-circle b2"><i class="fa-solid fa-award"></i></div>
+                        <div class="badge-circle b3"><i class="fa-solid fa-certificate"></i></div>
+                        <div class="badge-circle b4"><i class="fa-solid fa-graduation-cap"></i></div>
+                    </div>
+                    <div class="badge-label">شارات التقدم (رمزية)</div>
+                    <div class="lesson-progress">
+                        <div class="label">تقدّم الدرس</div>
+                        <div class="progress-dots" id="lesson-dots"></div>
+                    </div>
+                    <div class="motiv-text" id="motiv-text"></div>
+                    <div class="lives-row" aria-hidden="true">
+                        <i class="fa-solid fa-heart"></i>
+                        <i class="fa-solid fa-heart"></i>
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <div class="play-nav-bottom">
+                        <button type="button" class="btn-next-act" id="btn-next">التالي <i class="fa-solid fa-arrow-left"></i> نشاط</button>
+                        <a class="btn-ghost-sm" href="games.html">مساعدة</a>
+                        <a class="btn-ghost-sm" href="games.html">السابق</a>
+                    </div>
+                    <div class="feedback-banner" id="play-feedback" role="status"></div>
+                </div>
+            </aside>
+
+            <section class="play-panel play-tool" aria-labelledby="tool-head">
+                <div class="play-panel__head" id="tool-head"><i class="fa-solid fa-cubes"></i> صندوق الأوامر</div>
+                <div class="play-panel__body">
+                    <p class="text-muted fw-normal" style="margin-bottom:0.75rem;font-size:0.9rem;">اسحب الكتل إلى لوحة البرمجة. نقرتان على كتلة في اللوحة لحذفها.</p>
+                    <div class="toolbox-blocks" id="toolbox"></div>
+                </div>
+            </section>
+
+            <section class="play-panel play-work" aria-labelledby="work-head">
+                <div class="play-panel__head" id="work-head"><i class="fa-solid fa-code"></i> لوحة البرمجة المرئية</div>
+                <div class="play-panel__body">
+                    <div class="workspace-drop" id="workspace"></div>
+                    <div class="workspace-seq" id="workspace-seq" style="margin-top:0.5rem;display:none;"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <span>CodeSprout — منصة تعليم برمجة للأطفال</span>
+        </div>
+    </footer>
+    <script>var API = 'http://127.0.0.1:5000';</script>
+    <script src="static/js/block-play.js"></script>
+    <script src="static/js/nav.js"></script>
+    <script>
+        document.getElementById('logout-link-play').addEventListener('click', function (e) {
+            e.preventDefault();
+            fetch(API + '/api/logout', { credentials: 'include' }).then(function () { window.location.href = 'index.html'; });
+        });
+        fetch(API + '/api/user', { credentials: 'include' }).then(function (r) { return r.json(); }).then(function (u) {
+            var adm = document.getElementById('nav-admin');
+            if (adm) {
+                if (u.logged_in && (u.role || '') === 'admin') { adm.classList.remove('hidden'); }
+                else { adm.classList.add('hidden'); }
+            }
+            if (!u.logged_in) {
+                document.getElementById('play-user-name').textContent = 'سجّل الدخول لمزامنة النقاط';
+                return;
+            }
+            document.getElementById('play-user-name').textContent = u.full_name || u.username;
+        }).catch(function () {});
+    </script>
+</body>
+</html>

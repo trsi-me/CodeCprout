@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اقتراح دروس إضافية - CodeSprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header class="main-header main-header--primary">
+        <div class="header-content header-content--wide">
+            <a href="index.html" class="logo-link">
+                <img src="static/assets/images/Logo.jpg" alt="CodeSprout" class="logo-img logo-img--full" width="180" height="56">
+                <span class="logo-text"><span class="logo-code">Code</span><span class="logo-sprout">Sprout</span></span>
+            </a>
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-label="فتح وإغلاق القائمة" aria-expanded="false" aria-controls="main-nav-drawer">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+            <nav class="main-nav main-nav--bold" id="main-nav-drawer">
+                <a href="index.html"><i class="fa-solid fa-house fa-fw"></i> الرئيسية</a>
+                <a href="admin.html" id="nav-admin" class="hidden"><i class="fa-solid fa-chart-pie fa-fw"></i> لوحة الإدارة</a>
+                <a href="dashboard.html"><i class="fa-solid fa-gauge-high fa-fw"></i> لوحة التحكم</a>
+                <a href="play.html"><i class="fa-solid fa-shapes fa-fw"></i> نشاط مرئي</a>
+                <a href="games.html"><i class="fa-solid fa-layer-group fa-fw"></i> مكتبة الألعاب</a>
+                <a href="analytics.html"><i class="fa-solid fa-chart-line fa-fw"></i> التحليل</a>
+                <a href="suggestions.html"><i class="fa-solid fa-lightbulb fa-fw"></i> اقتراحات</a>
+                <a href="#" id="logout-link"><i class="fa-solid fa-right-from-bracket fa-fw"></i> خروج</a>
+            </nav>
+        </div>
+    </header>
+    <main class="main-content main-content--wide">
+        <section class="suggestions-page">
+            <h1>اقتراح دروس إضافية</h1>
+            <p class="suggestions-desc">بناءً على تحليل أدائك، نقترح عليك التركيز على المواضيع التالية:</p>
+            <div class="suggestions-list" id="suggestions-list"></div>
+            <a href="games.html" class="btn btn-primary">العودة لمكتبة الألعاب</a>
+        </section>
+    </main>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <span>CodeSprout 2026 - تعلم البرمجة للأطفال</span>
+        </div>
+    </footer>
+    <script>var API = 'http://127.0.0.1:5000';</script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/nav.js"></script>
+    <script>
+        document.getElementById('logout-link').addEventListener('click',function(e){e.preventDefault();fetch(API+'/api/logout',{credentials:'include'}).then(function(){window.location.href='index.html';});});
+        fetch(API+'/api/user',{credentials:'include'}).then(function(r){return r.json();}).then(function(u){
+            if(!u.logged_in){window.location.href='login.html';return;}
+            var adm=document.getElementById('nav-admin');
+            if(adm){if((u.role||'')==='admin'){adm.classList.remove('hidden');}else{adm.classList.add('hidden');}}
+        });
+        fetch(API+'/api/suggestions',{credentials:'include'}).then(function(r){
+            if(r.status===401){window.location.href='login.html';return;}
+            return r.json();
+        }).then(function(d){
+            if(d&&d.parent_mode){
+                document.querySelector('.suggestions-page').innerHTML='<h1>اقتراح دروس</h1><p>الاقتراحات متاحة لحساب الطفل. أنشئ حساباً للطفل من لوحة التحكم.</p><a href="dashboard.html" class="btn btn-primary">لوحة التحكم</a>';
+                return;
+            }
+            var el=document.getElementById('suggestions-list');
+            if(d&&d.weak_categories&&d.weak_categories.length){
+                d.weak_categories.forEach(function(wc){
+                    var card=document.createElement('div');
+                    card.className='suggestion-card';
+                    card.innerHTML='<h3>'+wc.category+'</h3><p>عدد الأخطاء في هذا الموضوع: '+wc.err_count+'</p><p class="suggestion-msg">ننصحك بممارسة تمارين إضافية في موضوع "'+wc.category+'"</p>';
+                    el.appendChild(card);
+                });
+            }else{
+                var card=document.createElement('div');
+                card.className='suggestion-card success-card';
+                card.innerHTML='<h3>ممتاز!</h3><p>أداؤك جيد في جميع المواضيع. واصل الممارسة وحاول تمارين أصعب.</p>';
+                el.appendChild(card);
+            }
+        });
+    </script>
+</body>
+</html>

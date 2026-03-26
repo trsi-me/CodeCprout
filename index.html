@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeSprout - تعلم البرمجة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header class="main-header main-header--primary">
+        <div class="header-content header-content--wide">
+            <a href="index.html" class="logo-link">
+                <img src="static/assets/images/Logo.jpg" alt="CodeSprout" class="logo-img logo-img--full" width="180" height="56">
+                <span class="logo-text"><span class="logo-code">Code</span><span class="logo-sprout">Sprout</span></span>
+            </a>
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-label="فتح وإغلاق القائمة" aria-expanded="false" aria-controls="main-nav-drawer">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+            <nav class="main-nav main-nav--bold" id="main-nav-drawer">
+                <a href="index.html"><i class="fa-solid fa-house fa-fw"></i> الرئيسية</a>
+                <a href="about.html"><i class="fa-solid fa-circle-info fa-fw"></i> تعريف</a>
+                <a href="contact.html"><i class="fa-solid fa-envelope fa-fw"></i> تواصل</a>
+                <span id="nav-guest">
+                    <a href="login.html"><i class="fa-solid fa-right-to-bracket fa-fw"></i> تسجيل الدخول</a>
+                    <a href="register.html"><i class="fa-solid fa-user-plus fa-fw"></i> تسجيل</a>
+                </span>
+                <span id="nav-user" class="hidden">
+                    <a href="admin.html" id="nav-admin" class="hidden"><i class="fa-solid fa-chart-pie fa-fw"></i> لوحة الإدارة</a>
+                    <a href="dashboard.html"><i class="fa-solid fa-gauge-high fa-fw"></i> لوحة التحكم</a>
+                    <a href="play.html"><i class="fa-solid fa-shapes fa-fw"></i> نشاط مرئي</a>
+                    <a href="games.html"><i class="fa-solid fa-layer-group fa-fw"></i> مكتبة الألعاب</a>
+                    <a href="analytics.html"><i class="fa-solid fa-chart-line fa-fw"></i> التحليل</a>
+                    <a href="suggestions.html"><i class="fa-solid fa-lightbulb fa-fw"></i> اقتراحات</a>
+                    <a href="#" id="logout-link"><i class="fa-solid fa-right-from-bracket fa-fw"></i> خروج</a>
+                </span>
+            </nav>
+        </div>
+    </header>
+    <main class="main-content main-content--wide">
+        <div id="flash-messages"></div>
+        <section class="hero hero--official">
+            <div class="hero-content">
+                <h1 class="hero-title">مرحباً بك في CodeSprout</h1>
+                <p class="hero-desc">منصة تعليمية رسمية لتعلّم أساسيات البرمجة والتفكير الحاسوبي</p>
+                <p class="hero-lead fw-normal">محتوى متدرّج لكل الأعمار، بالعربية، مع أنشطة تفاعلية وألعاباً تعليمية مصممة بمعايير واضحة.</p>
+                <div class="hero-buttons">
+                    <a href="register.html" class="btn btn-primary"><i class="fa-solid fa-rocket"></i> ابدأ الآن</a>
+                    <a href="login.html" class="btn btn-secondary"><i class="fa-solid fa-key"></i> تسجيل الدخول</a>
+                    <a href="play.html" class="btn btn-outline btn-outline--light"><i class="fa-solid fa-code"></i> نشاط البرمجة المرئية</a>
+                    <a href="about.html" class="btn btn-outline btn-outline--light"><i class="fa-solid fa-book-open"></i> تعرّف على المنصة</a>
+                </div>
+            </div>
+        </section>
+        <section class="features">
+            <h2>ماذا تتعلّم؟</h2>
+            <p class="section-sub fw-normal">مسارات تغطي الترتيب، المتغيرات، الحلقات، والمنطق — بصياغة مناسبة للأطفال والمراهقين.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-list-ol"></i></div>
+                    <h3>ترتيب الأوامر</h3>
+                    <p class="fw-normal">فهم التسلسل والخطوات كما في الخوارزميات اليومية والبرمجة.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-tag"></i></div>
+                    <h3>المتغيرات</h3>
+                    <p class="fw-normal">تخزين البيانات واختيار أسماء واضحة وقراءة أنواع القيم.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-rotate"></i></div>
+                    <h3>الحلقات</h3>
+                    <p class="fw-normal">التكرار المنضبط وربطه بمهام حقيقية مثل العد والرسوم.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fa-solid fa-diagram-project"></i></div>
+                    <h3>التفكير المنطقي</h3>
+                    <p class="fw-normal">شروط، مقارنات، واتخاذ قرار — أساس البرمجة المنظمة.</p>
+                </div>
+            </div>
+        </section>
+        <section class="cta cta--official">
+            <h2>تعلّم بالممارسة</h2>
+            <p class="fw-normal">سحب وإفلات للترتيب، وأسئلة اختيار دقيقة، ولوحة برمجة مرئية للأوامر — دون تعقيد غير لازم.</p>
+        </section>
+    </main>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <span>CodeSprout — منصة تعليم برمجة للأطفال واليافعين</span>
+        </div>
+    </footer>
+    <script>var API = 'http://127.0.0.1:5000';</script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/nav.js"></script>
+    <script>
+        fetch(API+'/api/user',{credentials:'include'}).then(function(r){return r.json();}).then(function(d){
+            var g=document.getElementById('nav-guest'),u=document.getElementById('nav-user');
+            var adm=document.getElementById('nav-admin');
+            if(d.logged_in){g.classList.add('hidden');u.classList.remove('hidden');if(adm){if((d.role||'')==='admin'){adm.classList.remove('hidden');}else{adm.classList.add('hidden');}}}
+            else{g.classList.remove('hidden');u.classList.add('hidden');if(adm){adm.classList.add('hidden');}}
+        }).catch(function(){});
+        document.getElementById('logout-link')&&document.getElementById('logout-link').addEventListener('click',function(e){
+            e.preventDefault();
+            fetch(API+'/api/logout',{credentials:'include'}).then(function(){window.location.href='index.html';});
+        });
+    </script>
+</body>
+</html>

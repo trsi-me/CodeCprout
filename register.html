@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التسجيل - CodeSprout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header class="main-header main-header--primary">
+        <div class="header-content header-content--wide">
+            <a href="index.html" class="logo-link">
+                <img src="static/assets/images/Logo.jpg" alt="CodeSprout" class="logo-img logo-img--full" width="180" height="56">
+                <span class="logo-text"><span class="logo-code">Code</span><span class="logo-sprout">Sprout</span></span>
+            </a>
+            <button type="button" class="nav-toggle" id="nav-toggle" aria-label="فتح وإغلاق القائمة" aria-expanded="false" aria-controls="main-nav-drawer">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+            <div class="nav-backdrop" id="nav-backdrop" hidden></div>
+            <nav class="main-nav main-nav--bold" id="main-nav-drawer">
+                <a href="index.html"><i class="fa-solid fa-house fa-fw"></i> الرئيسية</a>
+                <a href="about.html"><i class="fa-solid fa-circle-info fa-fw"></i> تعريف</a>
+                <a href="contact.html"><i class="fa-solid fa-envelope fa-fw"></i> تواصل</a>
+                <a href="login.html"><i class="fa-solid fa-right-to-bracket fa-fw"></i> تسجيل الدخول</a>
+                <a href="register.html"><i class="fa-solid fa-user-plus fa-fw"></i> تسجيل</a>
+            </nav>
+        </div>
+    </header>
+    <main class="main-content">
+        <div id="flash-messages"></div>
+        <section class="form-section">
+            <div class="form-card register-card-wide">
+                <h1 class="fw-bold">إنشاء حساب جديد</h1>
+                <p class="register-lead fw-normal">سجّل كطفل لاختيار المستوى المناسب لعمرك، أو كولي أمر لإدارة حسابات الأطفال.</p>
+                <form id="register-form" class="auth-form">
+                    <div class="form-group">
+                        <label class="fw-bold" for="role-child">نوع الحساب</label>
+                        <div class="role-radios" role="radiogroup" aria-label="نوع الحساب">
+                            <label class="radio-label">
+                                <input type="radio" name="role" id="role-child" value="child" checked>
+                                <span class="radio-label-text">
+                                    <span class="fw-bold">طفل</span>
+                                    <span class="fw-normal">تعلّم عبر الألعاب والتمارين التفاعلية</span>
+                                </span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="role" id="role-parent" value="parent">
+                                <span class="radio-label-text">
+                                    <span class="fw-bold">ولي أمر</span>
+                                    <span class="fw-normal">إنشاء وإدارة حسابات الأطفال من لوحة مخصصة</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group" id="age-group">
+                        <label class="fw-bold" for="age">عمر الطفل (6–15)</label>
+                        <input type="number" id="age" name="age" min="6" max="15" placeholder="مثال: 9">
+                        <small class="field-hint">يُحدّد المستوى والألعاب المناسبة لعمره.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="fw-bold" for="full_name">الاسم الكامل</label>
+                        <input type="text" id="full_name" name="full_name" required placeholder="الاسم">
+                    </div>
+                    <div class="form-group">
+                        <label class="fw-bold" for="username">اسم المستخدم</label>
+                        <input type="text" id="username" name="username" required placeholder="اختر اسم مستخدم">
+                    </div>
+                    <div class="form-group">
+                        <label class="fw-bold" for="password">كلمة المرور</label>
+                        <input type="password" id="password" name="password" required placeholder="اختر كلمة مرور">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">تسجيل</button>
+                </form>
+                <p class="form-footer">لديك حساب؟ <a href="login.html">تسجيل الدخول</a></p>
+            </div>
+        </section>
+    </main>
+    <footer class="main-footer">
+        <div class="footer-content">
+            <span>CodeSprout 2026 - تعلم البرمجة للأطفال</span>
+        </div>
+    </footer>
+    <script>var API = 'http://127.0.0.1:5000';</script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/nav.js"></script>
+    <script>
+        function syncRole(){
+            var role=document.querySelector('input[name="role"]:checked').value;
+            var ag=document.getElementById('age-group');
+            if(role==='child'){ag.classList.remove('hidden');document.getElementById('age').required=true;}
+            else{ag.classList.add('hidden');document.getElementById('age').required=false;}
+        }
+        document.querySelectorAll('input[name="role"]').forEach(function(r){r.addEventListener('change',syncRole);});
+        syncRole();
+        document.getElementById('register-form').addEventListener('submit',function(e){
+            e.preventDefault();
+            var fd=new FormData(this);
+            var role=fd.get('role')||'child';
+            var payload={full_name:fd.get('full_name'),username:fd.get('username'),password:fd.get('password'),role:role};
+            if(role==='child'){payload.age=fd.get('age');}
+            fetch(API+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify(payload)}).then(function(r){return r.json();}).then(function(d){
+                if(d.success){window.location.href=d.redirect||'login.html';}
+                else{showFlash(d.error,'error');}
+            }).catch(function(){showFlash('حدث خطأ','error');});
+        });
+    </script>
+</body>
+</html>

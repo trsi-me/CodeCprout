@@ -1,0 +1,10 @@
+# Blueprint Render — يُنشئ/يحدّث Web Service عند ربط المستودع
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: codecprout
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # يجب الربط على 0.0.0.0 والمنفذ الذي يعطيه Render ($PORT) وإلا لا يُكتشف المنفذ
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT

@@ -1,2 +1,3 @@
-# CodeSprout — تبعيات Python (الخادم Flask فقط؛ الباقي من المكتبة القياسية)
+# CodeSprout — خادم Flask + تشغيل الإنتاج على Render وغيره
 Flask>=3.0.0,<4
+gunicorn>=23.0.0

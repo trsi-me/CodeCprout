@@ -771,6 +771,37 @@ body.nav-drawer-open {
     margin-top: 1.5rem;
 }
 
+.modal-feedback {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.modal-feedback.hidden {
+    display: none;
+}
+
+.modal-feedback--ok {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+}
+
+.modal-feedback--err {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+
+.modal-feedback--warn {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
 /* Exercise types */
 .sort-container {
     display: flex;

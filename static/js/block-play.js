@@ -157,7 +157,11 @@
     function getInsertBefore(container, x) {
         var list = [].slice.call(container.querySelectorAll('.code-block:not(.dragging)'));
         list.sort(function (a, b) {
-            return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
+            var ra = a.getBoundingClientRect();
+            var rb = b.getBoundingClientRect();
+            var rowTol = 10;
+            if (Math.abs(ra.top - rb.top) > rowTol) return ra.top - rb.top;
+            return ra.left - rb.left;
         });
         for (var i = 0; i < list.length; i++) {
             var box = list[i].getBoundingClientRect();
@@ -167,7 +171,15 @@
     }
 
     function syncSequenceFromDom() {
-        state.sequence = [].map.call(els.workspace.querySelectorAll('.code-block'), function (n) {
+        var blocks = [].slice.call(els.workspace.querySelectorAll('.code-block'));
+        blocks.sort(function (a, b) {
+            var ra = a.getBoundingClientRect();
+            var rb = b.getBoundingClientRect();
+            var rowTol = 10;
+            if (Math.abs(ra.top - rb.top) > rowTol) return ra.top - rb.top;
+            return ra.left - rb.left;
+        });
+        state.sequence = blocks.map(function (n) {
             return n.getAttribute('data-cmd');
         });
     }
@@ -322,6 +334,20 @@
         $('btn-run') && $('btn-run').addEventListener('click', runCode);
         $('btn-reset') && $('btn-reset').addEventListener('click', resetBoard);
         $('btn-next') && $('btn-next').addEventListener('click', nextLevel);
+        $('btn-hint') && $('btn-hint').addEventListener('click', showHint);
+    }
+
+    function showHint() {
+        var L = currentLevel();
+        var text = L.hint || 'راجع التعليمات في الأعلى ورتّب الكتل على لوحة البرمجة.';
+        if (els.feedback) {
+            els.feedback.className = 'feedback-banner hint';
+            els.feedback.style.display = 'block';
+            els.feedback.textContent = text;
+        }
+        if (els.motiv) {
+            els.motiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     }
 
     if (document.readyState === 'loading') {

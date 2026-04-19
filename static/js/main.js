@@ -71,7 +71,10 @@ function initExerciseModal() {
             openExercise(parseInt(id, 10), type, content, answer, title);
         });
     }
-    if (submitBtn) submitBtn.addEventListener('click', submitExercise);
+    if (submitBtn && !submitBtn.dataset.boundSubmit) {
+        submitBtn.dataset.boundSubmit = '1';
+        submitBtn.addEventListener('click', submitExercise);
+    }
 }
 
 function parseJsonAttr(val) {
@@ -93,7 +96,39 @@ var currentExercise = {
     userAnswer: null
 };
 
+var submitExerciseInFlight = false;
+
+function resetExerciseSubmitUi() {
+    var btn = document.getElementById('submit-exercise');
+    var fb = document.getElementById('modal-feedback');
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'تحقق من الإجابة';
+        btn.removeAttribute('data-action');
+        btn.removeAttribute('data-result-ok');
+    }
+    if (fb) {
+        fb.textContent = '';
+        fb.className = 'modal-feedback hidden';
+        fb.setAttribute('hidden', '');
+        fb.setAttribute('aria-hidden', 'true');
+    }
+}
+
+function setModalFeedback(kind, message) {
+    var fb = document.getElementById('modal-feedback');
+    if (!fb) return;
+    fb.className = 'modal-feedback modal-feedback--' + kind;
+    fb.textContent = message;
+    fb.removeAttribute('hidden');
+    fb.removeAttribute('aria-hidden');
+    try {
+        fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (e) {}
+}
+
 function openExercise(id, type, content, answer, title) {
+    resetExerciseSubmitUi();
     currentExercise = {
         id: id,
         type: type,
@@ -228,13 +263,20 @@ function checkOrderAnswer(userOrder, correctAnswer) {
 }
 
 function submitExercise() {
-    currentExercise.attempts += 1;
+    var btn = document.getElementById('submit-exercise');
+    if (btn && btn.getAttribute('data-action') === 'close') {
+        closeModal();
+        return;
+    }
+
+    if (submitExerciseInFlight) return;
+
     var isCorrect = false;
     var errorType = '';
     if (currentExercise.type === 'order') {
         var order = getOrderUserAnswer();
         if (!order || order.length === 0) {
-            showFlash('يرجى ترتيب العناصر بالسحب والإفلات', 'warning');
+            setModalFeedback('warn', 'يرجى ترتيب العناصر بالسحب والإفلات ثم الضغط على التحقق.');
             return;
         }
         var result = checkOrderAnswer(order, currentExercise.answer);
@@ -242,7 +284,7 @@ function submitExercise() {
         if (!isCorrect) errorType = result.type || 'ترتيب';
     } else {
         if (!currentExercise.userAnswer) {
-            showFlash('يرجى اختيار إجابة', 'warning');
+            setModalFeedback('warn', 'يرجى اختيار إجابة قبل التحقق.');
             return;
         }
         var ans = currentExercise.answer;
@@ -253,37 +295,64 @@ function submitExercise() {
         }
         if (!isCorrect) errorType = 'اختيار';
     }
+
+    currentExercise.attempts += 1;
     var timeSpent = (Date.now() - currentExercise.startTime) / 1000;
+
+    if (btn) {
+        submitExerciseInFlight = true;
+        btn.disabled = true;
+        btn.textContent = 'جاري حفظ النتيجة…';
+        btn.removeAttribute('data-action');
+        btn.removeAttribute('data-result-ok');
+    }
+
+    var feedbackEl = document.getElementById('modal-feedback');
+    if (feedbackEl) {
+        feedbackEl.className = 'modal-feedback hidden';
+        feedbackEl.textContent = '';
+    }
+
     sendAttempt(currentExercise.id, isCorrect, timeSpent, currentExercise.attempts, errorType, function () {
+        submitExerciseInFlight = false;
+        if (!btn) return;
+
         if (isCorrect) {
-            showFlash('أحسنت! إجابة صحيحة — واصل المرحلة التالية', 'success');
-            closeModal();
+            setModalFeedback('ok', 'أحسنت! إجابة صحيحة — يمكنك إغلاق النافذة ومتابعة المراحل.');
+            btn.textContent = 'إغلاق';
+            btn.setAttribute('data-action', 'close');
+            btn.setAttribute('data-result-ok', '1');
+            btn.disabled = false;
         } else {
-            showFlash('جرّب مرة أخرى، يمكنك النجاح في المحاولة القادمة', 'info');
+            setModalFeedback('err', 'ليس بعد — راجع السؤال وحاول مجدداً.');
+            btn.textContent = 'تحقق من الإجابة';
+            btn.disabled = false;
         }
     });
 }
 
 function sendAttempt(exerciseId, isCorrect, timeSpent, attemptsCount, errorType, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', (typeof API !== 'undefined' ? API : '') + '/api/submit_attempt');
+    var base = typeof API !== 'undefined' ? API : '';
+    xhr.open('POST', base + '/api/submit_attempt');
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.withCredentials = true;
+    xhr.timeout = 25000;
+    xhr.onerror = xhr.ontimeout = function () {
+        if (callback) callback();
+    };
     xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                try {
-                    var data = JSON.parse(xhr.responseText);
-                    if (data.success && data.level) {
-                        var levelEl = document.querySelector('.stat-value');
-                        if (levelEl) levelEl.textContent = data.level;
-                    }
-                } catch (e) {}
-                if (callback) callback();
-            } else {
-                if (callback) callback();
-            }
+        if (xhr.readyState !== 4) return;
+        if (xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                if (data.success && data.level) {
+                    var levelEl = document.querySelector('.stat-value');
+                    if (levelEl) levelEl.textContent = data.level;
+                }
+            } catch (e) {}
         }
+        if (callback) callback();
     };
     xhr.send(JSON.stringify({
         exercise_id: exerciseId,
@@ -296,5 +365,11 @@ function sendAttempt(exerciseId, isCorrect, timeSpent, attemptsCount, errorType,
 
 function closeModal() {
     var modal = document.getElementById('exercise-modal');
+    var btn = document.getElementById('submit-exercise');
+    var flashSuccess = btn && btn.getAttribute('data-result-ok') === '1';
     if (modal) modal.classList.add('hidden');
+    resetExerciseSubmitUi();
+    if (flashSuccess) {
+        showFlash('أحسنت! إجابة صحيحة — واصل المرحلة التالية', 'success');
+    }
 }

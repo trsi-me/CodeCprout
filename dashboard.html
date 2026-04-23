@@ -61,8 +61,8 @@
                             <input type="password" id="child_password" name="password" required>
                         </div>
                         <div class="form-group">
-                            <label for="child_age">عمر الطفل</label>
-                            <input type="number" id="child_age" name="age" min="6" max="15" required placeholder="6–15">
+                            <label for="child_age">عمر الطفل (7–14)</label>
+                            <input type="number" id="child_age" name="age" min="7" max="14" required placeholder="7–14">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary">إنشاء حساب الطفل</button>
@@ -167,7 +167,7 @@
                         d.children.forEach(function(ch){
                             var card=document.createElement('div');
                             card.className='child-summary-card';
-                            card.innerHTML='<h4>'+ch.full_name+'</h4><p>العمر: '+ch.age+' | الشريحة: '+ch.age_bracket+'</p><p>المستوى: '+ch.level+' | المحاولات: '+ch.total_attempts+' | الصحيح: '+ch.correct_count+'</p><p class="child-login-hint">اسم المستخدم: <code>'+ch.username+'</code> — سجّل دخول الطفل من صفحة الدخول للعب.</p>';
+                            card.innerHTML='<h4>'+ch.full_name+'</h4><p>العمر: '+ch.age+' | الشريحة: '+ch.age_bracket+'</p><p>المستوى: '+ch.level+' | المحاولات: '+ch.total_attempts+' | الصحيح: '+ch.correct_count+'</p><p class="child-actions"><a class="btn btn-secondary" href="analytics.html?view_child='+ch.id+'">تحليل الطفل</a> <a class="btn btn-outline" href="suggestions.html?view_child='+ch.id+'">اقتراحات</a></p><p class="child-login-hint">اسم المستخدم: <code>'+ch.username+'</code> — سجّل دخول الطفل من صفحة الدخول للعب.</p>';
                             el.appendChild(card);
                         });
                     });

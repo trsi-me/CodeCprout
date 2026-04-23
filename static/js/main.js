@@ -351,6 +351,13 @@ function sendAttempt(exerciseId, isCorrect, timeSpent, attemptsCount, errorType,
                     if (levelEl) levelEl.textContent = data.level;
                 }
             } catch (e) {}
+        } else if (xhr.status === 403 || xhr.status === 400) {
+            try {
+                var err = JSON.parse(xhr.responseText);
+                if (err && err.error) {
+                    setModalFeedback('err', err.error);
+                }
+            } catch (e) {}
         }
         if (callback) callback();
     };

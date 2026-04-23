@@ -22,6 +22,10 @@ _HTML_PAGES = frozenset({
 
 BRACKET_RANK = {'6-8': 0, '9-11': 1, '12+': 2}
 
+# عمر المستخدمين من نوع «طفل» (سنوات)
+MIN_CHILD_AGE = 7
+MAX_CHILD_AGE = 14
+
 
 def get_db():
     conn = sqlite3.connect(app.config['DATABASE'])
@@ -458,9 +462,9 @@ def api_register():
         try:
             age = int(age)
         except (TypeError, ValueError):
-            return jsonify({'success': False, 'error': 'يرجى إدخال عمر الطفل (رقم بين 6 و 15)'}), 400
-        if age < 6 or age > 15:
-            return jsonify({'success': False, 'error': 'العمر يجب أن يكون بين 6 و 15'}), 400
+            return jsonify({'success': False, 'error': f'يرجى إدخال عمر الطفل (رقم بين {MIN_CHILD_AGE} و {MAX_CHILD_AGE})'}), 400
+        if age < MIN_CHILD_AGE or age > MAX_CHILD_AGE:
+            return jsonify({'success': False, 'error': f'العمر يجب أن يكون بين {MIN_CHILD_AGE} و {MAX_CHILD_AGE}'}), 400
         age_bracket = age_to_bracket(age)
     else:
         age = None
@@ -511,9 +515,9 @@ def api_register_child():
     except (TypeError, ValueError):
         conn.close()
         return jsonify({'success': False, 'error': 'يرجى إدخال عمر صحيح للطفل'}), 400
-    if age < 6 or age > 15:
+    if age < MIN_CHILD_AGE or age > MAX_CHILD_AGE:
         conn.close()
-        return jsonify({'success': False, 'error': 'العمر يجب أن يكون بين 6 و 15'}), 400
+        return jsonify({'success': False, 'error': f'العمر يجب أن يكون بين {MIN_CHILD_AGE} و {MAX_CHILD_AGE}'}), 400
     if not username or not password or not full_name:
         conn.close()
         return jsonify({'success': False, 'error': 'يرجى ملء جميع الحقول'}), 400
@@ -821,22 +825,54 @@ def api_exercises():
 @app.route('/api/analytics')
 @login_required
 def api_analytics():
-    user_id = session['user_id']
+    session_uid = session['user_id']
+    view_child = request.args.get('view_child', type=int)
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT role FROM users WHERE id = ?', (user_id,))
+    cursor.execute('SELECT role FROM users WHERE id = ?', (session_uid,))
     r0 = cursor.fetchone()
-    if r0 and (r0['role'] or '') == 'parent':
+    my_role = (r0['role'] or 'child') if r0 else 'child'
+
+    target_id = session_uid
+    viewing_child = False
+    child_label = None
+
+    if view_child is not None and my_role == 'parent':
+        cursor.execute(
+            'SELECT id, full_name, username FROM users WHERE id = ? AND parent_id = ?',
+            (view_child, session_uid)
+        )
+        ch = cursor.fetchone()
+        if not ch:
+            conn.close()
+            return jsonify({'error': 'الطفل غير مرتبط بهذا الحساب.'}), 404
+        target_id = ch['id']
+        viewing_child = True
+        child_label = ((ch['full_name'] or '').strip() or (ch['username'] or '').strip() or 'الطفل')
+    elif my_role == 'parent':
         conn.close()
-        return jsonify({'parent_mode': True, 'attempts': [], 'performance': {}, 'errors': [], 'weak_exercises': [], 'level': '-'})
+        return jsonify({
+            'parent_mode': True,
+            'attempts': [],
+            'performance': {},
+            'errors': [],
+            'weak_exercises': [],
+            'level': '-',
+            'viewing_child': False
+        })
+
+    user_id = target_id
     cursor.execute('SELECT * FROM attempts WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
     attempts = [dict(a) for a in cursor.fetchall()]
     cursor.execute('SELECT * FROM performance WHERE user_id = ?', (user_id,))
     perf = cursor.fetchone()
     cursor.execute('''
-        SELECT error_type, COUNT(*) as count FROM attempts
-        WHERE user_id = ? AND is_correct = 0 AND error_type IS NOT NULL
-        GROUP BY error_type ORDER BY count DESC
+        SELECT
+            COALESCE(NULLIF(TRIM(error_type), ''), 'عام') as error_type,
+            COUNT(*) as count
+        FROM attempts
+        WHERE user_id = ? AND is_correct = 0
+        GROUP BY COALESCE(NULLIF(TRIM(error_type), ''), 'عام') ORDER BY count DESC
     ''', (user_id,))
     errors = [dict(e) for e in cursor.fetchall()]
     cursor.execute('''
@@ -847,27 +883,57 @@ def api_analytics():
     weak_exercises = [dict(w) for w in cursor.fetchall()]
     conn.close()
     level = get_user_level(user_id)
+
+    performance = dict(perf) if perf else {}
+    if not perf and attempts:
+        total = len(attempts)
+        correct = sum(1 for a in attempts if a.get('is_correct') == 1)
+        success_rate = (correct / total * 100) if total else 0
+        performance = {
+            'level': level,
+            'total_exercises': total,
+            'correct_count': correct,
+            'success_rate': round(success_rate, 1)
+        }
     return jsonify({
         'attempts': attempts,
-        'performance': dict(perf) if perf else {},
+        'performance': performance,
         'errors': errors,
         'weak_exercises': weak_exercises,
         'level': level,
-        'parent_mode': False
+        'parent_mode': False,
+        'viewing_child': viewing_child,
+        'viewing_child_name': child_label or '',
+        'viewing_context': ('تحليل: ' + (child_label or 'طفل')) if viewing_child else ''
     })
 
 
 @app.route('/api/suggestions')
 @login_required
 def api_suggestions():
-    user_id = session['user_id']
+    session_uid = session['user_id']
+    view_child = request.args.get('view_child', type=int)
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT role FROM users WHERE id = ?', (user_id,))
+    cursor.execute('SELECT role FROM users WHERE id = ?', (session_uid,))
     r0 = cursor.fetchone()
-    if r0 and (r0['role'] or '') == 'parent':
+    my_role = (r0['role'] or 'child') if r0 else 'child'
+
+    target_id = session_uid
+    if view_child is not None and my_role == 'parent':
+        cursor.execute(
+            'SELECT id FROM users WHERE id = ? AND parent_id = ?',
+            (view_child, session_uid)
+        )
+        if not cursor.fetchone():
+            conn.close()
+            return jsonify({'error': 'الطفل غير مرتبط بهذا الحساب.'}), 404
+        target_id = view_child
+    elif my_role == 'parent':
         conn.close()
         return jsonify({'weak_categories': [], 'parent_mode': True})
+
+    user_id = target_id
     cursor.execute('''
         SELECT e.category, COUNT(*) as err_count FROM attempts a
         JOIN exercises e ON a.exercise_id = e.id
@@ -876,7 +942,11 @@ def api_suggestions():
     ''', (user_id,))
     weak_categories = [dict(r) for r in cursor.fetchall()]
     conn.close()
-    return jsonify({'weak_categories': weak_categories, 'parent_mode': False})
+    return jsonify({
+        'weak_categories': weak_categories,
+        'parent_mode': False,
+        'viewing_child': view_child is not None
+    })
 
 
 @app.route('/api/gamification/me')

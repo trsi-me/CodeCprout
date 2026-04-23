@@ -36,6 +36,8 @@
     <main class="main-content main-content--wide">
         <section class="suggestions-page">
             <h1>اقتراح دروس إضافية</h1>
+            <p id="suggestions-context" class="analytics-context hidden" role="status"></p>
+            <p id="suggestions-error" class="form-error hidden" role="alert"></p>
             <p class="suggestions-desc">بناءً على تحليل أدائك، نقترح عليك التركيز على المواضيع التالية:</p>
             <div class="suggestions-list" id="suggestions-list"></div>
             <a href="games.html" class="btn btn-primary">العودة لمكتبة الألعاب</a>
@@ -56,29 +58,43 @@
             var adm=document.getElementById('nav-admin');
             if(adm){if((u.role||'')==='admin'){adm.classList.remove('hidden');}else{adm.classList.add('hidden');}}
         });
-        fetch(API+'/api/suggestions',{credentials:'include'}).then(function(r){
-            if(r.status===401){window.location.href='login.html';return;}
-            return r.json();
-        }).then(function(d){
-            if(d&&d.parent_mode){
-                document.querySelector('.suggestions-page').innerHTML='<h1>اقتراح دروس</h1><p>الاقتراحات متاحة لحساب الطفل. أنشئ حساباً للطفل من لوحة التحكم.</p><a href="dashboard.html" class="btn btn-primary">لوحة التحكم</a>';
-                return;
-            }
-            var el=document.getElementById('suggestions-list');
-            if(d&&d.weak_categories&&d.weak_categories.length){
-                d.weak_categories.forEach(function(wc){
+        (function(){
+            var params=new URLSearchParams(window.location.search);
+            var vid=params.get('view_child');
+            var q=vid?('?view_child='+encodeURIComponent(vid)):'';
+            var errEl=document.getElementById('suggestions-error');
+            var ctxEl=document.getElementById('suggestions-context');
+            function showErr(t){if(errEl){errEl.textContent=t||'تعذر تحميل الاقتراحات.';errEl.classList.remove('hidden');}}
+            fetch(API+'/api/suggestions'+q,{credentials:'include'}).then(function(r){
+                if(r.status===401){window.location.href='login.html';return Promise.reject('auth');}
+                return r.json().then(function(d){return{ok:r.ok,status:r.status,d:d};});
+            }).then(function(x){
+                if(!x||x==='auth')return;
+                var d=x.d;
+                if(!x.ok){showErr((d&&d.error)||('خطأ '+x.status));return;}
+                if(d&&d.error){showErr(d.error);return;}
+                if(d&&d.parent_mode){
+                    document.querySelector('.suggestions-page').innerHTML='<h1>اقتراح دروس</h1><p>لعرض اقتراحات موجهة لطفلك، اختر الطفل من <strong>لوحة التحكم</strong> أو سجّل دخول الطفل.</p><a href="dashboard.html" class="btn btn-primary">لوحة التحكم</a>';
+                    return;
+                }
+                if(d.viewing_child&&ctxEl){ctxEl.textContent='اقتراحات مبنية على نتائج الطفل المحدد';ctxEl.classList.remove('hidden');}
+                var el=document.getElementById('suggestions-list');
+                el.innerHTML='';
+                if(d&&d.weak_categories&&d.weak_categories.length){
+                    d.weak_categories.forEach(function(wc){
+                        var card=document.createElement('div');
+                        card.className='suggestion-card';
+                        card.innerHTML='<h3>'+wc.category+'</h3><p>عدد الأخطاء في هذا الموضوع: '+wc.err_count+'</p><p class="suggestion-msg">ننصحك بممارسة تمارين إضافية في موضوع "'+wc.category+'"</p>';
+                        el.appendChild(card);
+                    });
+                }else{
                     var card=document.createElement('div');
-                    card.className='suggestion-card';
-                    card.innerHTML='<h3>'+wc.category+'</h3><p>عدد الأخطاء في هذا الموضوع: '+wc.err_count+'</p><p class="suggestion-msg">ننصحك بممارسة تمارين إضافية في موضوع "'+wc.category+'"</p>';
+                    card.className='suggestion-card success-card';
+                    card.innerHTML='<h3>ممتاز!</h3><p>أداؤك جيد في جميع المواضيع. واصل الممارسة وحاول تمارين أصعب.</p>';
                     el.appendChild(card);
-                });
-            }else{
-                var card=document.createElement('div');
-                card.className='suggestion-card success-card';
-                card.innerHTML='<h3>ممتاز!</h3><p>أداؤك جيد في جميع المواضيع. واصل الممارسة وحاول تمارين أصعب.</p>';
-                el.appendChild(card);
-            }
-        });
+                }
+            }).catch(function(){showErr('تعذر الاتصال بالخادم. تأكد من تشغيل التطبيق.');});
+        })();
     </script>
 </body>
 </html>

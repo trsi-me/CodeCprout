@@ -36,6 +36,8 @@
     <main class="main-content main-content--wide">
         <section class="analytics-page">
             <h1>التحليل والتقارير</h1>
+            <p id="analytics-context" class="analytics-context hidden" role="status"></p>
+            <p id="analytics-error" class="form-error hidden" role="alert"></p>
             <div class="analytics-grid">
                 <div class="analytics-card">
                     <h3>المستوى الحالي</h3>
@@ -77,48 +79,67 @@
             var adm=document.getElementById('nav-admin');
             if(adm){if((u.role||'')==='admin'){adm.classList.remove('hidden');}else{adm.classList.add('hidden');}}
         });
-        fetch(API+'/api/analytics',{credentials:'include'}).then(function(r){
-            if(r.status===401){window.location.href='login.html';return;}
-            return r.json();
-        }).then(function(d){
-            if(!d||d.error)return;
-            if(d.parent_mode){
-                document.querySelector('.analytics-page').innerHTML='<h1>التحليل</h1><p class="parent-analytics-msg">تحليلات الأداء تُعرض لحساب الطفل. سجّل دخول الطفل أو راجع ملخص الأطفال من لوحة التحكم.</p><a href="dashboard.html" class="btn btn-primary">لوحة التحكم</a>';
-                return;
-            }
-            document.getElementById('ana-level').textContent=d.level;
-            var p=d.performance||{};
-            document.getElementById('ana-total').textContent='إجمالي التمارين: '+(p.total_exercises||0);
-            document.getElementById('ana-correct').textContent='الإجابات الصحيحة: '+(p.correct_count||0);
-            document.getElementById('ana-rate').textContent='نسبة النجاح: '+(p.success_rate||0)+'%';
-            var ec=document.getElementById('errors-chart');
-            if(d.errors&&d.errors.length){
-                var mx=Math.max.apply(null,d.errors.map(function(e){return e.count;}));
-                d.errors.forEach(function(e){
-                    var r=document.createElement('div');
-                    r.className='chart-bar-row';
-                    r.innerHTML='<span class="bar-label">'+(e.error_type||'غير محدد')+'</span><div class="bar-track"><div class="bar-fill" style="width:'+(e.count/mx*100)+'%"></div></div><span class="bar-value">'+e.count+'</span>';
-                    ec.appendChild(r);
+        (function(){
+            var params=new URLSearchParams(window.location.search);
+            var vid=params.get('view_child');
+            var q=vid?('?view_child='+encodeURIComponent(vid)):'';
+            var errEl=document.getElementById('analytics-error');
+            var ctxEl=document.getElementById('analytics-context');
+            function showErr(t){if(errEl){errEl.textContent=t||'تعذر تحميل التحليل.';errEl.classList.remove('hidden');}}
+            fetch(API+'/api/analytics'+q,{credentials:'include'}).then(function(r){
+                if(r.status===401){window.location.href='login.html';return Promise.reject('auth');}
+                return r.json().then(function(d){return{ok:r.ok,status:r.status,d:d};});
+            }).then(function(x){
+                if(!x||x==='auth')return;
+                var d=x.d;
+                if(!x.ok){
+                    showErr((d&&d.error)||('خطأ '+x.status));
+                    return;
+                }
+                if(d&&d.error){showErr(d.error);return;}
+                if(d&&d.parent_mode){
+                    document.querySelector('.analytics-page').innerHTML='<h1>التحليل</h1><p class="parent-analytics-msg">تحليلات الأداء تُعرض لحساب الطفل. اختر طفلاً من <strong>لوحة التحكم</strong> (عرض التحليل) أو سجّل دخول الطفل.</p><a href="dashboard.html" class="btn btn-primary">لوحة التحكم</a>';
+                    return;
+                }
+                if(d.viewing_context&&ctxEl){ctxEl.textContent=d.viewing_context;ctxEl.classList.remove('hidden');}
+                document.getElementById('ana-level').textContent=d.level||'-';
+                var p=d.performance||{};
+                document.getElementById('ana-total').textContent='إجمالي التمارين: '+(p.total_exercises||0);
+                document.getElementById('ana-correct').textContent='الإجابات الصحيحة: '+(p.correct_count||0);
+                document.getElementById('ana-rate').textContent='نسبة النجاح: '+(p.success_rate!=null?p.success_rate:0)+'%';
+                var ec=document.getElementById('errors-chart');
+                ec.innerHTML='';
+                if(d.errors&&d.errors.length){
+                    var mx=Math.max.apply(null,d.errors.map(function(e){return e.count;}));
+                    if(!mx)mx=1;
+                    d.errors.forEach(function(e){
+                        var row=document.createElement('div');
+                        row.className='chart-bar-row';
+                        row.innerHTML='<span class="bar-label">'+(e.error_type||'غير محدد')+'</span><div class="bar-track"><div class="bar-fill" style="width:'+(e.count/mx*100)+'%"></div></div><span class="bar-value">'+e.count+'</span>';
+                        ec.appendChild(row);
+                    });
+                }else{ec.innerHTML='<p class="no-data">لا توجد إجابات خاطئة مسجّلة بعد.</p>';}
+                var wt=document.getElementById('weak-topics');
+                wt.innerHTML='';
+                if(d.weak_exercises&&d.weak_exercises.length){
+                    d.weak_exercises.forEach(function(w){
+                        var li=document.createElement('li');
+                        li.textContent='تمرين #'+w.exercise_id;
+                        wt.appendChild(li);
+                    });
+                }else{wt.innerHTML='<li class="no-data">ممتاز! لا توجد مواضيع ضعيفة</li>';}
+                var pc=document.getElementById('progress-chart');
+                pc.innerHTML='';
+                var att=(d.attempts||[]).slice(0,20).reverse();
+                att.forEach(function(a){
+                    var dot=document.createElement('div');
+                    dot.className='progress-dot '+(a.is_correct?'correct':'wrong');
+                    dot.title=a.is_correct?'صح':'خطأ';
+                    pc.appendChild(dot);
                 });
-            }else{ec.innerHTML='<p class="no-data">لا توجد أخطاء مسجلة بعد</p>';}
-            var wt=document.getElementById('weak-topics');
-            if(d.weak_exercises&&d.weak_exercises.length){
-                d.weak_exercises.forEach(function(w){
-                    var li=document.createElement('li');
-                    li.textContent='تمرين #'+w.exercise_id;
-                    wt.appendChild(li);
-                });
-            }else{wt.innerHTML='<li class="no-data">ممتاز! لا توجد مواضيع ضعيفة</li>';}
-            var pc=document.getElementById('progress-chart');
-            var att=(d.attempts||[]).slice(0,20).reverse();
-            att.forEach(function(a){
-                var dot=document.createElement('div');
-                dot.className='progress-dot '+(a.is_correct?'correct':'wrong');
-                dot.title=a.is_correct?'صح':'خطأ';
-                pc.appendChild(dot);
-            });
-            if(!att.length){pc.innerHTML='<p class="no-data">لا توجد محاولات بعد</p>';}
-        });
+                if(!att.length){pc.innerHTML='<p class="no-data">لا توجد محاولات بعد. العب من مكتبة الألعاب ليظهر التقدم هنا.</p>';}
+            }).catch(function(){showErr('تعذر الاتصال بالخادم. تأكد من تشغيل التطبيق.');});
+        })();
     </script>
 </body>
 </html>
